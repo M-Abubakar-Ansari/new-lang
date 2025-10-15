@@ -29,7 +29,7 @@ operators = {
 }
 
 keywords = {
-    'its': 'self',
+    'its': 'self.',
     'it' : 'self',
     'is' : '=',
     'fun': 'def',
@@ -100,6 +100,7 @@ class Keyword:
 
 class Identifier:
     def __init__(self, value) -> None:
+        value = "py_py__" + value
         self.value = value
     
     def toPy(self):

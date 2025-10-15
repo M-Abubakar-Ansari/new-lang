@@ -1,5 +1,5 @@
 from Parser import sourceToAst
-from Transpiler import astToLines
+from Transpiler import astToLines, astToPy, lineToPy
 from reprStr import Print
 
 source = """
@@ -9,9 +9,11 @@ fun add
     takes x y
     gives x + y
 add x y
+if x > 0
+    display 10
 """
 
 ast = sourceToAst(source)
 lines = astToLines(ast)
-lines = [str(i) for i in lines]
-Print('\n'.join(lines))
+lines = astToPy(lines)
+print(lineToPy(lines))
