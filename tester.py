@@ -8,6 +8,7 @@ y is 20
 fun add
     takes x y
     gives x + y
+add x y
 """
 
 ast = sourceToAst(source)

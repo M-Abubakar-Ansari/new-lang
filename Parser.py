@@ -144,6 +144,8 @@ def sourceToAst(source):
             else:
                 Raise(l, '3', f"'{parts[0].title()}' statment outside the function? Maybe you forgot an indent?")
             hooks.append('pass')
+        else:
+            ast_parts = exprToAst(l.strip())
         if ast_parts:
             if hooks and hooks[-1] == 'pass':
                 hooks.pop()
