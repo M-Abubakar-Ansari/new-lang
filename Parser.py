@@ -54,13 +54,17 @@ def exprToAst(expr: str):
                 matched = False
                 for op in sorted(list(operators.keys()), key=lambda x: -len(x)):
                     if t[i:i+len(op)] == op:
+                        if i > 0:
+                            final_tokens.append(t[:i])
                         final_tokens.append(op)
-                        i += len(op)
+                        t = t[i+len(op):]
+                        i = 0
                         matched = True
                         break
                 if not matched:
-                    final_tokens.append(t[i])
                     i += 1
+            if t:
+                final_tokens.append(t)
     ast = []
     hooks = []
     thing_to_append = None
@@ -96,7 +100,7 @@ def variableToAst(expr):
 
 def functionToAst(expr):
     expr = str(expr).split(' ')
-    name = expr[1].removesuffix(':')
+    name = expr[1]
     return [FunctionDef(name)]
 
 def sourceToAst(source):
@@ -114,8 +118,9 @@ def sourceToAst(source):
         if length > 2 and parts[1] == 'is':
             ast_parts = variableToAst(l)
         elif parts[0] in ['if', 'elif', 'else'] and parts[-1][-1] == '?':
-            ast_parts = [Conditional(exprToAst([(str(j).removesuffix('?') if i == len(parts[1:])-1 else j ) for i,j in enumerate(parts[1:])]), parts[0].lower())]
-        elif parts[0] == 'fun' and str(parts[-1]).endswith(':'):
+            cond = exprToAst(l.removeprefix(parts[0]).removesuffix('?').split(' '))
+            ast_parts = [Conditional(cond, parts[0])]
+        elif parts[0] == 'fun':
             ast_parts = functionToAst(l)
             indent_node = INDENT(indent)
             line_ast = [indent_node] + ast_parts + [EOL()]

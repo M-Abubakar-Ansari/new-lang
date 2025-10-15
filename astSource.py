@@ -5,7 +5,7 @@ operators = {
     '===': 'type', # Type
     '!==': 'not-type', # Type
     '->': 'in', # Membership
-    '~>': 'not in', # Member ship
+    ':>': 'not in', # Member ship
     '&&': '&', # Bitwise
     '||': '|', # Bitwise
     '~~': '~', # Bitwise

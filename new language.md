@@ -1,38 +1,38 @@
 ```c
-new Person:
+new Person
     it takes food
     its name is "John"
     its age is 25
     its gender is "male"
     its position is 20
     its is_active is true
-    fun walks:
+    fun walks
         takes meters // no `it` for functions
         gives its position + meters
 
-    fun eats: 
+    fun eats
         display "eating {food}" // string interpolation
 
-    fun sleeps: 
+    fun sleeps
         its is_active is false // Variable value change
 
-    fun died: 
+    fun died
         its is_active is nothing 
 
 
-person is Person takes "Apple" for food
-person walks 20 meters // in python: person.walk(meters = 20) 
+person is Person with "Apple" food
+person walks 20 meters // in python person.walk(meters = 20) 
 person walks 20 // Also corrent
 person eats
 person died
 display person's is_active
 
 Is it readable?
-So; syntax is (simple):
+So; syntax is (simple)
 
 // comment
 variable is value
-fun name:
+fun name
     takes params // if any
     // return statement uses gives
     gives ...
@@ -41,16 +41,16 @@ fun name:
 name arg1, arg2 ...
 name arg1 param1, arg2 param2 // Equivalent to name(param=arg)
 
-// Classes:
-new Class:
+// Classes
+new Class
     it takes params...
     its property is nothing // it = self, 's = . so; self.property = None; nothing means null or none
     its property2 is 10
     its call is its method1 // Same as self.call = self.method1()
     
-    fun method1:
+    fun method1
         gives nothing
-    fun method2:
+    fun method2
         display "Nothing"
 
 object = Class takes args...
@@ -63,11 +63,12 @@ elif condition?
     value....
 else?
     value....
-// operators:
+// operators
 /*
     '===': 'type', // Type or
     '!==': 'not-type', // Type
-    'in': 'in', // Membership :in
+    '->': 'in', // Membership :in
+    ':>': 'not in', // Membership :in
     '&&': '&', // Bitwise :&&
     '||': '|', // Bitwise :||
     '~~': '~', // Bitwise :~
@@ -98,26 +99,31 @@ while codnition?
 /*
 You can use skip, break etc
 */
-for item in iterable:
+for item -> iterable
     ...
 
-repeat 4:
+repeat 4
     ...
 
-repeat 4 as i:
+repeat 4 as i
     ... // you can then use i here
 
-try:
+try
     ...
-error in Specific type(s) of error (comma seperatred)?
-    ... you can use error here
-finally:
+e -> Specific type(s) of error?
+    ... you can use e here
+finally
     ...
 
-
-
+// eg
+try
+    1/0
+e -> ZeroDivisionError KeyError ValueError TypeError?
+    dispaly "incorrect"
+finally
+    display "Code Completed"
 ```
-Some clarifications:
+Some clarifications
 - Function call: Always this way:
 
     ```cpp
