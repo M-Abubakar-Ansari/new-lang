@@ -1,4 +1,6 @@
+# Transpiler.py
 from astSource import *
+from Builtins import lang_builtins, prefix
 from string import punctuation
 from Error import Raise
 
@@ -23,15 +25,68 @@ def astToLines(ast):
         lines.append(line.copy())
     return lines
 
-# ...existing code...
 def astToPy(ast):
     pyLines = []
+    
+    def serialize_token(tok, in_expr=False):
+        """Serialize token without color codes"""
+        if isi(tok, Identifier):
+            return prefix + tok.value if not tok.value.startswith(prefix) else tok.value
+        if isi(tok, num):
+            return str(tok.value)  # Direct number output
+        if isi(tok, string):
+            return f'"{tok.value}"'
+        if isi(tok, Operator):
+            return operators.get(tok.value, tok.value)
+        if isi(tok, FunctionCall):
+            args = []
+            curr_expr = []
+            
+            for arg in tok.args:
+                if isi(arg, SEP):
+                    if curr_expr:
+                        args.append(' '.join(serialize_token(t, True) for t in curr_expr))
+                        curr_expr = []
+                else:
+                    curr_expr.append(arg)
+            
+            if curr_expr:
+                args.append(' '.join(serialize_token(t, True) for t in curr_expr))
+            
+            name = prefix + tok.name if not tok.name.startswith(prefix) else tok.name
+            return f"{name}({', '.join(args)})"
+        
+        v = getattr(tok, 'value', None)
+        return str(v) if v is not None else str(tok)
+
     for line in ast:
         py_line = []
         indent = ''
         for a in line:
             if isi(a, INDENT):
                 indent = a.toPy()
+            elif isi(a, FunctionDef):
+                params = ', '.join(serialize_token(p) for p in a.params)
+                name = prefix + a.name if not a.name.startswith(prefix) else a.name
+                py_line.append(f"def {name}({params}):")
+            elif isi(a, FunctionCall):
+                # Handle nested function calls in arguments
+                args = []
+                curr_expr = []
+                
+                for arg in a.args:
+                    if isi(arg, SEP):
+                        if curr_expr:
+                            args.append(' '.join(serialize_token(t, True) for t in curr_expr))
+                            curr_expr = []
+                    else:
+                        curr_expr.append(arg)
+                
+                if curr_expr:
+                    args.append(' '.join(serialize_token(t, True) for t in curr_expr))
+                
+                name = prefix + a.name if not a.name.startswith(prefix) else a.name
+                py_line.append(f"{name}({', '.join(args)})")
             elif isi(a, Keyword):
                 if a.value == 'is':
                     py_line.append('=')
@@ -40,50 +95,39 @@ def astToPy(ast):
                 elif a.value == 'fun':
                     continue
                 else:
-                    py_line.append(a.toPy() or a.value)
-            elif isi(a, Operator):
-                py_line.append(a.toPy() or a.value)
+                    py_line.append(serialize_token(a))
             elif isi(a, Conditional):
-                # Always use the correct Python keyword for conditionals
-                py_keyword = a.py_type  # should be 'if', 'elif', or 'else'
-                cond_str = ''
-                if isinstance(a.cond, list):
-                    cond_str = ' '.join(
-                        x.value if isi(x, Identifier) else str(x.value) if isi(x, num) else str(x)
-                        for x in a.cond
-                    )
+                cond = []
+                if a.cond:  # Check if condition exists
+                    for c in a.cond:
+                        if isi(c, Identifier):
+                            cond.append(prefix + c.value if not c.value.startswith(prefix) else c.value)
+                        elif isi(c, num):
+                            cond.append(str(c.value))
+                        elif isi(c, Operator):
+                            cond.append(operators.get(c.value, c.value))
+                        elif isi(c, FunctionCall):
+                            cond.append(serialize_token(c, True))
+                        else:
+                            cond.append(serialize_token(c))
+                    py_line.append(f"if {' '.join(cond)}:")
                 else:
-                    cond_str = str(a.cond)
-                if py_keyword == 'else':
-                    py_line.append(f"{py_keyword}:")
-                else:
-                    py_line.append(f"{py_keyword} {cond_str}:")
-            elif isi(a, FunctionDef):
-                params = ', '.join([p.value for p in a.params if isi(p, Identifier)])
-                py_line.append(f'def {a.name}({params}):')
-            elif isi(a, FunctionCall):
-                args = ', '.join([arg.value if isi(arg, Identifier) else str(arg.value) if isi(arg, num) else str(arg) for arg in a.args])
-                py_line.append(f'{a.name}({args})')
-            elif isi(a, Identifier):
-                py_line.append(a.value)
-            elif isi(a, num):
-                py_line.append(str(a.value))
-            elif isi(a, string):
-                py_line.append(f'"{a.value}"')
+                    py_line.append("if True:")
             else:
-                val = getattr(a, 'value', None)
-                if val is not None:
-                    py_line.append(str(val))
+                py_line.append(serialize_token(a))
+        
         if py_line:
             pyLines.append([indent + ' '.join(py_line)])
         else:
             pyLines.append([indent])
+            
     return pyLines
-# ...existing code...
-
 def lineToPy(lines):
     code = ''
     for i in lines:
         c = ''.join(i)
         code += c.rstrip() + '\n'
     return code
+
+def run(lines):
+    exec(lines)

@@ -58,6 +58,16 @@ class string:
     def __repr__(self) -> str:
         return Colors['str'](f'"{self.value}"')
 
+class SEP:
+    def __init__(self, value = ',') -> None:
+        self.value = value
+    
+    def toPy(self) -> str:
+        return self.value
+    
+    def __repr__(self) -> str:
+        return self.value
+
 class INDENT:
     def __init__(self, value = 0) -> None:
         self.value = '    ' * int(value)
